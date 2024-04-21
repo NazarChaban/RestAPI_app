@@ -22,6 +22,24 @@ if __name__ == '__main__':
 
 """
  - GET /api/contacts
+
+AUTHORIZATION:
+
+ - POST /api/auth/signup
+{
+    "username": "test",
+    "email": "test@api.com",
+    "password": "123456789"
+}
+
+ - POST /api/auth/login
+{
+    "username": "test@api.com",
+    "password": "123456789"
+}
+Header:
+Authorization: Bearer {access_token} (from response)
+
  - POST /api/contacts
 {
     "name": "John",
@@ -38,7 +56,9 @@ if __name__ == '__main__':
     "name": "John0",
     "surname": "Doe0",
     "email": "test1@api.com",
-    "phone_number": "1234567891"
+    "phone_number": "1234567891",
+    "birth_date": "21.04.2024",
+    "additional_info": "test1"
 }
  - PATCH /api/contacts/{id}
 {

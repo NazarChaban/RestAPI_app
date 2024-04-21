@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, HTTPException, Depends, status, Security
 from fastapi.security import (
     OAuth2PasswordRequestForm,
@@ -36,7 +34,7 @@ async def signup(
     return {'user': new_user, 'detail': 'User created successfully'}
 
 
-@router.post('/jogin', response_model=TokenModel)
+@router.post('/login', response_model=TokenModel)
 async def login(
     body: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
