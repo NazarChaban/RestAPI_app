@@ -1,20 +1,19 @@
-from typing import Optional
-
-from jose import JWTError, jwt
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
-from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
+from jose import JWTError, jwt
 
-from src.database.db import get_db
 from src.repository import users as repository_users
+from src.conf.config import settings
+from src.database.db import get_db
 
 
 class Auth:
     pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-    SECRET_KEY = 'fM4pJvK5s2vY9rB1qX4cU7zW0pS3lN6f'
-    ALGORITHM = 'HS256'
+    SECRET_KEY = settings.secret_key
+    ALGORITHM = settings.algorithm
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/token')
 
     def verify_password(
@@ -58,6 +57,11 @@ class Auth:
             username, timedelta(days=7), 'refresh_token'
         )
 
+    async def create_email_token(self, email: str):
+        return await self.create_token(
+            email, timedelta(days=7), 'email_scope'
+        )
+
     async def decode_refresh_token(self, refresh_token: str):
         try:
             payload = jwt.decode(
@@ -74,7 +78,7 @@ class Auth:
             )
         except JWTError:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail='Could not validate credentials'
             )
 
@@ -84,7 +88,7 @@ class Auth:
             db: Session = Depends(get_db)
     ):
         credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -109,5 +113,24 @@ class Auth:
             raise credentials_exception
         return user
 
+    async def get_email_from_token(self, token: str):
+        try:
+            payload = jwt.decode(
+                token,
+                self.SECRET_KEY,
+                algorithms=[self.ALGORITHM]
+            )
+            if payload['scope'] != 'email_scope':
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail='Invalid scope for token'
+                )
+            return payload['sub']
+        except JWTError as err:
+            print(err)
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Invalid token for email verification'
+            )
 
 auth_service = Auth()

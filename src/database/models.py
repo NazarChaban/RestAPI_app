@@ -35,7 +35,9 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(150), nullable=False)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(150), nullable=False)
+    avatar: Mapped[str | None]
     refresh_token: Mapped[str | None]
+    confirmed: Mapped[bool] = mapped_column(default=False)
 
 
 Base.metadata.create_all(engine)

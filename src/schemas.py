@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
+from datetime import datetime
+from typing import Optional
 
 
 # Contact schemas
@@ -46,6 +46,7 @@ class UserDB(BaseModel):
     id: int
     username: str
     email: str
+    avatar: Optional[str]
 
     class Config:
         from_attributes = True
@@ -61,3 +62,8 @@ class TokenModel(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = 'bearer'
+
+
+# Email schemas
+class RequestEmail(BaseModel):
+    email: EmailStr

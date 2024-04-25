@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 import uvicorn
 
-from src.routes import contacts, auth
+from src.routes import contacts, auth, users
 
 app = FastAPI()
 
-app.include_router(contacts.router, prefix="/api")
 app.include_router(auth.router, prefix='/api')
+app.include_router(users.router, prefix='/api')
+app.include_router(contacts.router, prefix="/api")
+
 
 @app.get('/')
 def read_root():
@@ -74,4 +76,10 @@ Authorization: Bearer {access_token} (from response)
  - GET /api/contacts/search?email=test1@api.com
 
  - GET /api/contacts/birthdays
+
+ - GET /api/auth/confirmed_email/{token}
+ - POST /apiauth/request_email
+
+ - GET /api/users/me
+ - PATCH /api/users/avatar
 """
