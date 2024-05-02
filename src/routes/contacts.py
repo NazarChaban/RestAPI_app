@@ -1,7 +1,7 @@
 from typing import List, Optional
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.orm import Session
 
 from src.schemas import (
@@ -18,7 +18,8 @@ router = APIRouter(prefix='/contacts', tags=['contacts'])
 @router.post(
     '/',
     response_model=ContactResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
 )
 async def create_contact(
     body: ContactBase,
@@ -28,7 +29,10 @@ async def create_contact(
     return await repository_contacts.create_contact(body, curr_user, db)
 
 
-@router.get('/', response_model=List[ContactResponse])
+@router.get(
+    '/', response_model=List[ContactResponse],
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
+)
 async def get_contacts(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, le=100),
@@ -38,7 +42,10 @@ async def get_contacts(
     return await repository_contacts.get_contacts(skip, limit, curr_user, db)
 
 
-@router.get('/search', response_model=List[ContactResponse])
+@router.get(
+    '/search', response_model=List[ContactResponse],
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
+)
 async def search_contact(
     name: Optional[str] = Query(None),
     surname: Optional[str] = Query(None),
@@ -66,7 +73,8 @@ async def search_contact(
 
 @router.get(
     '/birthdays',
-    response_model=List[ContactResponse]
+    response_model=List[ContactResponse],
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
 )
 async def get_birthdays(
     curr_user: User = Depends(auth_service.get_current_user),
@@ -75,7 +83,10 @@ async def get_birthdays(
     return await repository_contacts.get_birthdays(curr_user, db)
 
 
-@router.get('/{contact_id}', response_model=ContactResponse)
+@router.get(
+    '/{contact_id}', response_model=ContactResponse,
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
+)
 async def get_contact(
     contact_id: int,
     curr_user: User = Depends(auth_service.get_current_user),
@@ -92,7 +103,8 @@ async def get_contact(
 @router.put(
     '/{contact_id}',
     response_model=ContactResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
 )
 async def update_contact(
     contact_id: int,
@@ -108,7 +120,8 @@ async def update_contact(
 @router.patch(
     '/{contact_id}',
     response_model=ContactResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
 )
 async def update_contact_fields(
     contact_id: int,
@@ -123,7 +136,8 @@ async def update_contact_fields(
 
 @router.delete(
     '/{contact_id}',
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
 )
 async def delete_contact(
     contact_id: int,

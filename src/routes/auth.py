@@ -7,6 +7,7 @@ from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer
 )
+from fastapi_limiter.depends import RateLimiter
 from sqlalchemy. orm import Session
 
 from src.schemas import UserModel, UserResponse, TokenModel, RequestEmail
@@ -21,7 +22,8 @@ security = HTTPBearer()
 
 @router.post(
     '/signup', response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(RateLimiter(times=3, minutes=1))]
 )
 async def signup(
     body: UserModel,
@@ -46,7 +48,10 @@ async def signup(
     }
 
 
-@router.post('/login', response_model=TokenModel)
+@router.post(
+    '/login', response_model=TokenModel,
+    dependencies=[Depends(RateLimiter(times=3, minutes=1))]
+)
 async def login(
     body: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
@@ -78,7 +83,10 @@ async def login(
     }
 
 
-@router.get('refresh_token', response_model=TokenModel)
+@router.get(
+    'refresh_token', response_model=TokenModel,
+    dependencies=[Depends(RateLimiter(times=3, minutes=1))]
+)
 async def refresh_token(
     credentials: HTTPAuthorizationCredentials = Security(security),
     db: Session = Depends(get_db)
@@ -103,7 +111,10 @@ async def refresh_token(
     }
 
 
-@router.get('/confirmed_email/{token}')
+@router.get(
+    '/confirmed_email/{token}',
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
+)
 async def confirmed_email(
     token: str,
     db: Session = Depends(get_db)
@@ -121,7 +132,10 @@ async def confirmed_email(
     return {'message': 'Email confirmed'}
 
 
-@router.post('/request_email')
+@router.post(
+    '/request_email',
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
+)
 async def request_email(
     body: RequestEmail,
     background_tasks: BackgroundTasks,

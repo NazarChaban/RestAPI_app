@@ -1,14 +1,31 @@
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from fastapi_limiter import FastAPILimiter
+import redis.asyncio as aioredis
 from fastapi import FastAPI
 import uvicorn
 
 from src.routes import contacts, auth, users
+from src.conf.config import settings
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    r = await aioredis.Redis(
+        host=settings.redis_host,
+        port=settings.redis_port,
+        db=0
+    )
+    await FastAPILimiter.init(r)
+    yield
+    await FastAPILimiter.close()
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth.router, prefix='/api')
-app.include_router(users.router, prefix='/api')
 app.include_router(contacts.router, prefix="/api")
+app.include_router(users.router, prefix='/api')
 
 origins = [
     'http://contact-manager.com/frontend',

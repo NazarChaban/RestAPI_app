@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, status, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.orm import Session
 import cloudinary
 import cloudinary.uploader
@@ -20,7 +21,10 @@ async def read_users_me(
     return curr_user
 
 
-@router.patch('/avatar', response_model=UserDB)
+@router.patch(
+    '/avatar', response_model=UserDB,
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))]
+)
 async def update_avatar(
     file: UploadFile = File(),
     curr_user: User = Depends(auth_service.get_current_user),

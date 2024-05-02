@@ -19,6 +19,8 @@ bcrypt = "^4.1.2"
 pydantic-settings = "^2.2.1"
 fastapi-mail = "^1.4.1"
 cloudinary = "^1.40.0"
+redis = "^5.0.4"
+fastapi-limiter = "^0.1.6"
 
 
 [build-system]
