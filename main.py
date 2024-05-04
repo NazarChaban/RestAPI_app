@@ -11,6 +11,14 @@ from src.conf.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    The lifespan function is a coroutine that runs before and after the
+    application.
+    It's used to initialize and close resources, such as database connections.
+
+    :param app: Pass the fastapi instance to the function
+    :return: An object that can be used to clean up the resources when the server shuts down
+    """
     r = await aioredis.Redis(
         host=settings.redis_host,
         port=settings.redis_port,
@@ -42,7 +50,14 @@ app.add_middleware(
 
 @app.get('/')
 def read_root():
+    """
+    The read_root function returns a dictionary with the key 'message' and
+    value &quot;Contact manager API&quot;.
+
+    :return: A dictionary
+    """
     return {'message': "Contact manager API"}
+
 
 if __name__ == '__main__':
     uvicorn.run(
@@ -51,65 +66,3 @@ if __name__ == '__main__':
         port=8000,
         reload=True
     )
-
-"""
- - GET /api/contacts
-
-AUTHORIZATION:
-
- - POST /api/auth/signup
-{
-    "username": "test",
-    "email": "test@api.com",
-    "password": "123456789"
-}
-
- - POST /api/auth/login
-{
-    "username": "test@api.com",
-    "password": "123456789"
-}
-Header:
-Authorization: Bearer {access_token} (from response)
-
- - POST /api/contacts
-{
-    "name": "John",
-    "surname": "Doe",
-    "email": "test@api.com",
-    "phone_number": "123456789",
-    "birth_date": "18.04.2024",
-    "additional_info": "test"
-}
-
- - GET /api/contacts/{id}
- - PUT /api/contacts/{id}
-{
-    "name": "John0",
-    "surname": "Doe0",
-    "email": "test1@api.com",
-    "phone_number": "1234567891",
-    "birth_date": "21.04.2024",
-    "additional_info": "test1"
-}
- - PATCH /api/contacts/{id}
-{
-    "name": "John1",
-    "surname": "Doe1",
-    "email": null,
-    "phone_number": null
-}
- - DELETE /api/contacts/{id}
-
- - GET /api/contacts/search?name=John1
- - GET /api/contacts/search?surname=Doe1
- - GET /api/contacts/search?email=test1@api.com
-
- - GET /api/contacts/birthdays
-
- - GET /api/auth/confirmed_email/{token}
- - POST /apiauth/request_email
-
- - GET /api/users/me
- - PATCH /api/users/avatar
-"""

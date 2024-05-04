@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 data
+test.db
 
 # Distribution / packaging
 .Python
@@ -71,7 +72,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+# docs/_build/
 
 # PyBuilder
 .pybuilder/

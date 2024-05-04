@@ -23,7 +23,7 @@ security = HTTPBearer()
 @router.post(
     '/signup', response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(RateLimiter(times=3, minutes=1))]
+    # dependencies=[Depends(RateLimiter(times=3, minutes=1))]
 )
 async def signup(
     body: UserModel,
@@ -31,6 +31,15 @@ async def signup(
     request: Request,
     db: Session = Depends(get_db)
 ):
+    """
+    The signup function creates a new user in the database.
+
+    :param body: Get the data from the request body
+    :param background_tasks: Add a task to the background tasks queue
+    :param request: Get the base url of the server
+    :param db: Pass the database session to the repository
+    :return: A dictionary
+    """
     exist_user = await repository_users.get_user_by_email(body.email, db)
     if exist_user:
         raise HTTPException(
@@ -50,12 +59,21 @@ async def signup(
 
 @router.post(
     '/login', response_model=TokenModel,
-    dependencies=[Depends(RateLimiter(times=3, minutes=1))]
+    # dependencies=[Depends(RateLimiter(times=3, minutes=1))]
 )
 async def login(
     body: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
+    """
+    The login function is used to authenticate a user.
+    It takes in the username and password of the user, and returns an access
+    token if successful.
+
+    :param body: Get the username and password from the request body
+    :param db: Access the database
+    :return: A dictionary with the following keys:
+    """
     user = await repository_users.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(
@@ -69,7 +87,7 @@ async def login(
         )
     if not user.confirmed:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email is not confirmed"
         )
 
@@ -91,6 +109,15 @@ async def refresh_token(
     credentials: HTTPAuthorizationCredentials = Security(security),
     db: Session = Depends(get_db)
 ):
+    """
+    The refresh_token function is used to refresh the access token.
+    It takes in a refresh token and returns an access_token, a new
+    refresh_token, and the type of token (bearer).
+
+    :param credentials: Get the token from the request header
+    :param db: Get the database session
+    :return: A dictionary with the access_token, refresh_token and token_type
+    """
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
     user = await repository_users.get_user_by_email(email, db)
@@ -119,6 +146,13 @@ async def confirmed_email(
     token: str,
     db: Session = Depends(get_db)
 ):
+    """
+    The confirmed_email function is used to confirm a user's email address.
+
+    :param token: Get the token from the url
+    :param db: Get the database connection
+    :return: A dictionary with message 'Your email is already confirmed' or 'Email confirmed'
+    """
     email = await auth_service.get_email_from_token(token)
     user = await repository_users.get_user_by_email(email, db)
     if user is None:
@@ -142,6 +176,21 @@ async def request_email(
     request: Request,
     db: Session = Depends(get_db)
 ):
+    """
+    The request_email function is used to send an email to the user with a link
+    to confirm their account.
+
+    The function takes in the body of the request,
+    which contains only one field: email. It then uses this information to
+    query for a user in our database and if it finds one, sends them an email
+    with a link that they can use to confirm their account.
+
+    :param body: Validate the request body
+    :param background_tasks: Add a task to the background queue
+    :param request: Get the base_url of the application
+    :param db: Create a database session
+    :return: A dictionary with a message 'Check your email for confirmation' or 'Your email already confirmed'
+    """
     user = await repository_users.get_user_by_email(body.email, db)
     if user.confirmed:
         return {'message': 'Your email already confirmed'}
